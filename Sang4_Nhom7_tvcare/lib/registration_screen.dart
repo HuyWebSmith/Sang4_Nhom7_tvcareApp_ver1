@@ -31,7 +31,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text,
           initials: _initialsController.text.trim(),
-          role: _selectedRole, // Đã thêm vai trò người dùng vào đây
+          role: _selectedRole,
         );
         // --- END: SỬA LỖI LOGIC ---
 
