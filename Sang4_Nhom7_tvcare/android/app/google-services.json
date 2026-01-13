@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "388638913870",
+    "project_id": "tvcare-c9891",
+    "storage_bucket": "tvcare-c9891.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:388638913870:android:f1f4daf29980ebdc6bda1f",
+        "android_client_info": {
+          "package_name": "com.example.tvcare_flutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "388638913870-71oakl3rtu8jvqkgv8qjod0sotgc5s3a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.tvcare_flutter",
+            "certificate_hash": "59802d85a9cf8bee8b7bd36b70aa65fc3fa58d84"
+          }
+        },
+        {
+          "client_id": "388638913870-2b567bq3soa1cnbejg97angkr9eut5m4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO16wI9Vw-wsEpRYEPluOZ4XHi7RVQyX4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "388638913870-2b567bq3soa1cnbejg97angkr9eut5m4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
