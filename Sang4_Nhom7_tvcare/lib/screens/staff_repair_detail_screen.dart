@@ -24,6 +24,32 @@ class _StaffRepairDetailScreenState extends State<StaffRepairDetailScreen> {
     _currentOrder = widget.order;
   }
 
+  // --- START: NEW FUNCTION TO ACCEPT ORDER ---
+  Future<void> _acceptOrder() async {
+    setState(() => _isProcessing = true);
+    // Gọi đúng hàm service `acceptRepair`
+    final success = await _service.acceptRepair(_currentOrder.id);
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Nhận đơn thành công!"), backgroundColor: Colors.green),
+        );
+        // Sau khi nhận đơn, trạng thái sẽ là Confirmed
+        setState(() {
+          _currentOrder.status = RepairStatus.Confirmed;
+          _isProcessing = false;
+        });
+        Navigator.pop(context, true); // Pop and signal refresh
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Thao tác thất bại."), backgroundColor: Colors.red),
+        );
+        setState(() => _isProcessing = false);
+      }
+    }
+  }
+  // --- END: NEW FUNCTION ---
+
   Future<void> _updateStatus(RepairStatus newStatus) async {
     setState(() => _isProcessing = true);
     final success = await _service.updateStatus(_currentOrder.id, newStatus);
@@ -96,6 +122,15 @@ class _StaffRepairDetailScreenState extends State<StaffRepairDetailScreen> {
     }
 
     switch (_currentOrder.status) {
+      case RepairStatus.Pending:
+        return _actionButton(
+          "NHẬN ĐƠN",
+          Icons.playlist_add_check,
+          Colors.orange,
+          // --- START: CALLING THE CORRECT FUNCTION ---
+          _acceptOrder, // Gọi hàm mới _acceptOrder()
+          // --- END: CALLING THE CORRECT FUNCTION ---
+        );
       case RepairStatus.Confirmed:
         return _actionButton(
           "BẮT ĐẦU SỬA CHỮA",

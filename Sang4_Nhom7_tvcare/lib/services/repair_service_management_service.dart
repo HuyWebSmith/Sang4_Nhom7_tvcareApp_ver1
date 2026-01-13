@@ -15,7 +15,7 @@ class RepairServiceManagementService {
   Future<List<RepairService>> getAllServices() async {
     final token = await _getToken();
     final response = await http.get(
-      Uri.parse('${_baseUrl}admin/repair-services'), // Fixed URL joining
+      Uri.parse('$_baseUrl/admin/repair-services'), // Ensure slash for safety
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -32,20 +32,23 @@ class RepairServiceManagementService {
   Future<bool> createService(RepairService service) async {
     final token = await _getToken();
     final response = await http.post(
-      Uri.parse('${_baseUrl}admin/repair-services'), // Fixed URL joining
+      Uri.parse('$_baseUrl/admin/repair-services'), // Ensure slash for safety
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
       body: jsonEncode(service.toJson()),
     );
-    return response.statusCode == 201;
+    // --- START: FIX --- 
+    // Accept both 201 (Created) and 200 (OK) as success
+    return response.statusCode == 201 || response.statusCode == 200;
+    // --- END: FIX ---
   }
 
   Future<bool> toggleService(int serviceId) async {
     final token = await _getToken();
     final response = await http.patch(
-      Uri.parse('${_baseUrl}admin/repair-services/$serviceId/toggle-active'), // Fixed URL joining
+      Uri.parse('$_baseUrl/admin/repair-services/$serviceId/toggle-active'), // Ensure slash for safety
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
