@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -25,9 +26,10 @@ class ProductService {
       if (limit != null) {
         url += '?limit=$limit';
       }
+      // Lấy danh sách sản phẩm là public, không cần xác thực
       final response = await http.get(
         Uri.parse(url),
-        headers: await _getHeaders(requireAuth: false), // Public endpoint
+        headers: await _getHeaders(requireAuth: false),
       );
       
       if (response.statusCode == 200) {
@@ -46,27 +48,36 @@ class ProductService {
   // 2. GET PRODUCT DETAIL (Gộp cả thông tin chính và Specs)
   Future<ProductDetail> getProductDetail(int id) async {
     try {
+      final productUrl = Config_URL.buildUrl("ProductApi/$id");
+      final specsUrl = Config_URL.buildUrl("products/$id/specs");
+
+      // API lấy chi tiết sản phẩm YÊU CẦU xác thực
       final results = await Future.wait([
-        http.get(Uri.parse(Config_URL.buildUrl("ProductApi/$id")), headers: await _getHeaders(requireAuth: false)), // Public
-        http.get(Uri.parse(Config_URL.buildUrl("products/$id/specs")), headers: await _getHeaders(requireAuth: false)) // Public
+        http.get(Uri.parse(productUrl), headers: await _getHeaders(requireAuth: true)),
+        http.get(Uri.parse(specsUrl), headers: await _getHeaders(requireAuth: true))
       ]);
 
       final productRes = results[0];
       final specsRes = results[1];
 
-      if (productRes.statusCode == 200) {
-        Map<String, dynamic> productJson = jsonDecode(productRes.body);
-        if (specsRes.statusCode == 200) {
-          productJson['specs'] = jsonDecode(specsRes.body);
-        }
-        return ProductDetail.fromJson(productJson);
+      if (productRes.statusCode != 200) {
+        debugPrint("!!! GET DETAIL FAILED (Product): ${productRes.statusCode} - ${productRes.body}");
+        throw Exception("Lấy chi tiết sản phẩm thất bại (Mã: ${productRes.statusCode})");
+      }
+
+      Map<String, dynamic> productJson = jsonDecode(productRes.body);
+      
+      if (specsRes.statusCode == 200) {
+        productJson['specs'] = jsonDecode(specsRes.body);
+      } else {
+        debugPrint("!!! WARN: Could not fetch specs (Mã: ${specsRes.statusCode}). Proceeding without specs.");
       }
       
-      debugPrint("!!! GET DETAIL FAILED: ${productRes.statusCode}");
-      throw Exception("Lấy chi tiết thất bại");
+      return ProductDetail.fromJson(productJson);
+
     } catch (e) {
       debugPrint("!!! ERROR GET DETAIL: $e");
-      rethrow;
+      throw Exception("Lấy chi tiết thất bại. Vui lòng kiểm tra lại đường truyền hoặc cấu hình API.");
     }
   }
 

@@ -16,42 +16,43 @@ class LocationPickerScreen extends StatefulWidget {
 
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
   final MapController _mapController = MapController();
+  final TextEditingController _searchController = TextEditingController();
   LatLng? _currentCenter;
-  String _currentAddress = "Di chuyển bản đồ để chọn...";
+  String _currentAddress = "Đang tải...";
   bool _isLoading = true;
-  LatLng? _initialPosition;
   Timer? _debounce;
+  List<Location> _searchResults = [];
+  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
-    _determinePosition();
+    _setDefaultLocation();
   }
 
   @override
   void dispose() {
     _debounce?.cancel();
+    _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _determinePosition() async {
+  Future<void> _setDefaultLocation() async {
+    LatLng defaultLocation = LatLng(10.762622, 106.660172); // Trung tâm TPHCM
     try {
-      final position = await Geolocator.getCurrentPosition();
-      setState(() {
-        _initialPosition = LatLng(position.latitude, position.longitude);
-        _currentCenter = _initialPosition;
-        _isLoading = false;
-      });
-      _getAddressFromLatLng(_currentCenter!);
+      // Thử lấy vị trí hiện tại của user để có trải nghiệm tốt hơn
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      defaultLocation = LatLng(position.latitude, position.longitude);
     } catch (e) {
-      // Handle case where location cannot be determined, center on a default location
-      setState(() {
-        _initialPosition = LatLng(10.762622, 106.660172); // Default to HCMC
-        _currentCenter = _initialPosition;
-        _isLoading = false;
-      });
-      _getAddressFromLatLng(_currentCenter!);
+      // Nếu không được thì dùng vị trí mặc định
+      print("Không thể lấy vị trí hiện tại: $e");
     }
+    setState(() {
+      _currentCenter = defaultLocation;
+      _isLoading = false;
+    });
+    _mapController.move(defaultLocation, 15.0);
+    _getAddressFromLatLng(defaultLocation);
   }
 
   Future<void> _getAddressFromLatLng(LatLng latLng) async {
@@ -71,24 +72,43 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   void _onPositionChanged(MapCamera camera, bool hasGesture) {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
-      final center = camera.center;
-      if(center != null) {
-        _getAddressFromLatLng(center);
-        setState(() {
-          _currentCenter = center;
-        });
-       }
-    });
+    if (hasGesture) {
+      if (_debounce?.isActive ?? false) _debounce!.cancel();
+      _debounce = Timer(const Duration(milliseconds: 500), () {
+        final center = camera.center;
+        if (center != null) {
+          setState(() {
+            _currentCenter = center;
+            _currentAddress = "Đang tìm địa chỉ...";
+          });
+          _getAddressFromLatLng(center);
+        }
+      });
+    }
   }
 
+  Future<void> _searchLocation(String address) async {
+    if (address.isEmpty) {
+      setState(() {
+        _searchResults = [];
+      });
+      return;
+    }
+    try {
+      List<Location> locations = await locationFromAddress(address);
+      setState(() {
+        _searchResults = locations;
+      });
+    } catch (e) {
+      print("Lỗi tìm kiếm: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Chọn địa chỉ của bạn"),
+        title: const Text("Chọn địa chỉ"),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -97,8 +117,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 FlutterMap(
                   mapController: _mapController,
                   options: MapOptions(
-                    initialCenter: _initialPosition!,
-                    initialZoom: 17.0,
+                    initialCenter: _currentCenter ?? LatLng(10.762622, 106.660172),
+                    initialZoom: 15.0,
                     onPositionChanged: _onPositionChanged,
                   ),
                   children: [
@@ -115,6 +135,83 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     size: 50,
                   ),
                 ),
+                // Search UI
+                Positioned(
+                  top: 0,
+                  left: 10,
+                  right: 10,
+                  child: Column(
+                    children: [
+                      Card(
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: 'Tìm kiếm địa chỉ...',
+                            prefixIcon: Icon(Icons.search),
+                            suffixIcon: IconButton(
+                              icon: Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchResults = [];
+                                  _isSearching = false;
+                                });
+                              },
+                            ),
+                          ),
+                          onChanged: (value) {
+                            if (value.isNotEmpty) {
+                              setState(() {
+                                _isSearching = true;
+                              });
+                              _searchLocation(value);
+                            } else {
+                              setState(() {
+                                _isSearching = false;
+                                _searchResults = [];
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      if (_isSearching && _searchResults.isNotEmpty)
+                        Card(
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _searchResults.length,
+                            itemBuilder: (context, index) {
+                              final location = _searchResults[index];
+                              return ListTile(
+                                title: FutureBuilder<Placemark>(
+                                  future: _getPlacemark(location),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.hasData) {
+                                      final p = snapshot.data!;
+                                      return Text("${p.street}, ${p.subLocality}, ${p.locality}");
+                                    }
+                                    return Text("Đang tải...");
+                                  },
+                                ),
+                                onTap: () {
+                                  final newPos = LatLng(location.latitude, location.longitude);
+                                  _mapController.move(newPos, 17.0);
+                                  setState(() {
+                                    _currentCenter = newPos;
+                                    _searchResults = [];
+                                    _isSearching = false;
+                                    _searchController.clear();
+                                  });
+                                  _getAddressFromLatLng(newPos);
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                // Confirmation Card
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -154,5 +251,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               ],
             ),
     );
+  }
+
+  Future<Placemark> _getPlacemark(Location location) async {
+    final placemarks = await placemarkFromCoordinates(location.latitude, location.longitude);
+    return placemarks.first;
   }
 }

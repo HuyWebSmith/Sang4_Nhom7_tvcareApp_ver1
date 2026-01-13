@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:tvcare_flutter/services/auth.dart';
 
@@ -25,9 +26,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
     if (mounted) {
       if (isLoggedIn) {
         final String? role = await Auth.getRole();
-        if (role == 'Admin' || role == 'Staff' || role == 'Technician') {
+        if (role == 'Admin') {
           Navigator.pushReplacementNamed(context, '/admin');
+        } else if (role == 'Staff' || role == 'Technician') {
+          // Điều hướng Staff và Technician đến màn hình chính của họ
+          Navigator.pushReplacementNamed(context, '/staff_navigation');
         } else {
+          // Khách hàng và các vai trò khác về trang chủ
           Navigator.pushReplacementNamed(context, '/');
         }
       } else {

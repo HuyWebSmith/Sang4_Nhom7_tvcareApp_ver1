@@ -243,7 +243,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Container(
-            constraints: BoxConstraints(minWidth: MediaQuery.of(context).size.width - 48),
+            constraints: const BoxConstraints(minWidth: 1000),
             child: DataTable(
               headingRowHeight: 50,
               dataRowMaxHeight: 70,

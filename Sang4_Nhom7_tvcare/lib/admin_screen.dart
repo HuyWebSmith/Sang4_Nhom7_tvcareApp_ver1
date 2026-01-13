@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tvcare_flutter/screens/admin/admin_invoice_management_screen.dart';
 import 'package:tvcare_flutter/services/auth.dart';
 import 'screens/admin_repair_service_management_screen.dart';
 import 'category_management_page.dart';
@@ -17,8 +18,10 @@ class AdminScreen extends StatefulWidget {
 class _AdminScreenState extends State<AdminScreen> {
   int _selectedIndex = 0;
 
+  // Add the new screen to the list of pages
   final List<Widget> _adminPages = [
     const AdminRepairOrdersManagementScreen(),
+    const AdminInvoiceManagementScreen(), // New Invoice Screen
     const AdminRepairServiceManagementScreen(),
     const ProductManagementScreen(),
     const AdminStaffManagementScreen(),
@@ -55,7 +58,6 @@ class _AdminScreenState extends State<AdminScreen> {
                 _selectedIndex = index;
               });
             },
-            // Sửa lại logic để tuân thủ quy tắc của NavigationRail
             labelType: isWideScreen ? NavigationRailLabelType.none : NavigationRailLabelType.selected,
             extended: isWideScreen,
             destinations: const <NavigationRailDestination>[
@@ -63,6 +65,12 @@ class _AdminScreenState extends State<AdminScreen> {
                 icon: Icon(Icons.assignment_outlined),
                 selectedIcon: Icon(Icons.assignment),
                 label: Text('Đơn sửa chữa'),
+              ),
+              // Add the new destination for invoices
+              NavigationRailDestination(
+                icon: Icon(Icons.receipt_long_outlined),
+                selectedIcon: Icon(Icons.receipt_long),
+                label: Text('Hóa đơn'),
               ),
               NavigationRailDestination(
                 icon: Icon(Icons.build_circle_outlined),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:tvcare_flutter/screens/invoice_upload_screen.dart';
 import '../../models/repair_models.dart';
 import '../../services/staff_repair_service.dart';
 
@@ -108,6 +109,20 @@ class _StaffRepairDetailScreenState extends State<StaffRepairDetailScreen> {
           Icons.check_circle,
           Colors.green,
           () => _updateStatus(RepairStatus.Done),
+        );
+      case RepairStatus.Done:
+        return _actionButton(
+          "UPLOAD HÓA ĐƠN",
+          Icons.receipt_long,
+          Colors.blue,
+          () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => InvoiceUploadScreen(repairOrderId: _currentOrder.id),
+              ),
+            );
+          },
         );
       default:
         return const SizedBox.shrink(); // No actions for other statuses
