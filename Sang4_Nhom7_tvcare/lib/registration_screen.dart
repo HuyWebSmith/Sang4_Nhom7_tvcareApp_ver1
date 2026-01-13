@@ -25,12 +25,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       setState(() => _isLoading = true);
 
       try {
+        // --- START: SỬA LỖI LOGIC ---
         final result = await Auth.register(
           username: _usernameController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text,
           initials: _initialsController.text.trim(),
+          role: _selectedRole, // Đã thêm vai trò người dùng vào đây
         );
+        // --- END: SỬA LỖI LOGIC ---
 
         if (result['success'] == true) {
           _showSnackBar("Đăng ký thành công!", Colors.green);

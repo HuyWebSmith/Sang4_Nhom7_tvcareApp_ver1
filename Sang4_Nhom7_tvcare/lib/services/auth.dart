@@ -77,13 +77,36 @@ class Auth {
     };
 
     try {
-      final response = await _apiClient.post('Authenticate/register', body: body);
+      // --- START: SỬA LỖI 404 ---
+      final response = await _apiClient.post('/Authenticate/register', body: body);
+      // --- END: SỬA LỖI 404 ---
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {"success": true, "message": "Đăng ký thành công"};
       }
-      return {'success': false, 'message': 'Đăng ký thất bại'};
+      
+      String errorMessage = 'Đăng ký thất bại.';
+      try {
+        final errorBody = jsonDecode(response.body);
+
+        if (errorBody['errors'] is Map) {
+          final errorsMap = errorBody['errors'] as Map<String, dynamic>;
+          final firstErrorList = errorsMap.values.first as List<dynamic>;
+          if (firstErrorList.isNotEmpty) {
+            errorMessage = firstErrorList.first.toString();
+          }
+        } 
+        else {
+           errorMessage = errorBody['Message'] ?? errorBody['message'] ?? errorBody['title'] ?? response.body;
+        }
+
+      } catch (e) {
+        if (response.body.isNotEmpty) {
+          errorMessage = response.body;
+        }
+      }
+      return {'success': false, 'message': errorMessage};
     } catch (e) {
-      return {'success': false, 'message': 'Lỗi kết nối'};
+      return {'success': false, 'message': 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại mạng.'};
     }
   }
 }

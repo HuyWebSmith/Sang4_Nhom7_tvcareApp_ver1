@@ -59,8 +59,6 @@ class _TVDetailPageState extends State<TVDetailPage> {
                   _buildHeaderInfo(),
                   const SizedBox(height: 24),
                   _buildVariantSelector(),
-                  const SizedBox(height: 32),
-                  _buildActionButtons(),
                   const SizedBox(height: 40),
                   _buildTechSpecs(), // PHẦN THÔNG SỐ KỸ THUẬT
                   const SizedBox(height: 40),
@@ -163,38 +161,6 @@ class _TVDetailPageState extends State<TVDetailPage> {
               ),
             );
           }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          flex: 4,
-          child: SizedBox(
-            height: 60,
-            child: ElevatedButton(
-              onPressed: (_selectedVariant == null || _selectedVariant!.stock == 0) ? null : () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0D47A1),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 0,
-              ),
-              child: const Text("MUA NGAY", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          flex: 1,
-          child: Container(
-            height: 60,
-            decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(16)),
-            child: IconButton(onPressed: () {}, icon: const Icon(Icons.add_shopping_cart, color: Color(0xFF0D47A1))),
-          ),
         ),
       ],
     );
